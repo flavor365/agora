@@ -6258,20 +6258,24 @@ fn setup_withdrawal_cap_test(
 /// 86400 seconds apart must land in different buckets.
 #[test]
 fn test_day_calculation_same_day_shares_bucket() {
-    // Day 1: timestamps 0 and 86399 both map to day 0
-    assert_eq!(0u64 / 86400, 0);
+    // Timestamps within the first day all map to bucket 0
+    assert_eq!(1u64 / 86400, 0);
     assert_eq!(86399u64 / 86400, 0);
 
-    // Day 2: timestamp 86400 maps to day 1
+    // Timestamp at exactly one day maps to bucket 1
     assert_eq!(86400u64 / 86400, 1);
     assert_eq!(172799u64 / 86400, 1);
 
     // Arbitrary real-world timestamp (2024-01-01 00:00:00 UTC = 1704067200)
-    let day_a = 1_704_067_200u64 / 86400;
-    let day_b = (1_704_067_200u64 + 86399) / 86400;
-    let day_c = (1_704_067_200u64 + 86400) / 86400;
+    // Expected day number: 1704067200 / 86400 = 19723
+    let base: u64 = 1_704_067_200;
+    let day_a = base / 86400;                    // start of day  → 19723
+    let day_b = (base + 43200u64) / 86400u64;    // midday        → 19723 (same bucket)
+    let day_c = (base + 86400u64) / 86400u64;    // next day      → 19724
     assert_eq!(day_a, day_b); // same day
     assert_ne!(day_a, day_c); // next day
+    assert_eq!(day_a, 19723);
+    assert_eq!(day_c, 19724);
 }
 
 /// Withdrawal cap is enforced within a single day: a second withdrawal that
